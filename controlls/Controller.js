@@ -3,10 +3,8 @@ import path from 'path';
 import XLSX from 'xlsx';
 import fs from 'fs';
 
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
 
 const excelBufferToJson = (buffer) => {
     const workbook = XLSX.read(buffer, { type: 'buffer' });
@@ -16,11 +14,9 @@ const excelBufferToJson = (buffer) => {
     return jsonData;
 };
 
-
 const ensureDirectoryExists = async (dirPath) => {
     await fs.promises.mkdir(dirPath, { recursive: true });
 };
-
 
 const logTime = async (logFilePath, fileName, startTime, endTime) => {
     const logMessage = `File: ${fileName}, Start Time: ${startTime}, End Time: ${endTime}\n`;
@@ -55,7 +51,6 @@ export const createContact = async () => {
             }
 
             for (let element of data) {
-                // await fs.promises.appendFile(successfulDataFile,JSON.stringify({ CustomerId: element.CustomerId }) + '\n');
                 const gender = element.Gender === "M" ? "Male" : element.Gender === "F" ? "Female" : "";
                 const maritalStatus = element.MaritalStatus === "M" ? "Married" : element.MaritalStatus === "W" ? "Widow" : element.MaritalStatus === "S" ? "Single" : "";
 
@@ -110,7 +105,10 @@ export const createContact = async () => {
                         await ensureDirectoryExists(path.dirname(failedDataFile));
                         let existingFailedData = [];
                         if (fs.existsSync(failedDataFile)) {
-                            existingFailedData = XLSX.utils.sheet_to_json(XLSX.readFile(failedDataFile).Sheets[0]);
+                            const workbook = XLSX.readFile(failedDataFile);
+                            const firstSheetName = workbook.SheetNames[0];
+                            const worksheet = workbook.Sheets[firstSheetName];
+                            existingFailedData = XLSX.utils.sheet_to_json(worksheet);
                         }
                         const newFailedData = [...existingFailedData, element];
                         const newWorkbook = XLSX.utils.book_new();
@@ -133,7 +131,7 @@ export const createContact = async () => {
         }
 
         console.log("Contacts processed and files removed successfully");
-        return
+        return;
     } catch (error) {
         console.error(`Error in creating contacts: ${error.message}`);
     }
